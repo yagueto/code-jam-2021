@@ -1,13 +1,16 @@
-from typing import List, Optional
+from typing import List
 
 
 class Menu:
     """For handling menus in the application"""
 
-    def __init__(self, options: Optional[List[str]] = None,
-                 default: int = 0, padding: int = 1) -> None:
+    def __init__(self, options: List[str], default: int = 0,
+                 padding: int = 1, align: bool = False) -> None:
 
-        self.options = [] if options is None else options
+        if align:
+            max_ = max([len(x) for x in options])
+            self.options = [x.center(max_) for x in options]
+
         self.options = [x.center(len(x) + 2 * padding) for x in self.options]
         self.current = default
 
