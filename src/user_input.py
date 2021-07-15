@@ -25,7 +25,7 @@ def validate(guess: str, synonyms: List[str], threshold: int = 95) -> bool:
     match = False
 
     for synonym in synonyms:
-        if fuzz.partial_ratio(guess, synonym) >= threshold:
+        if fuzz.ratio(guess, synonym) >= threshold:
             match = True
             break
 
