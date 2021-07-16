@@ -56,23 +56,33 @@ def intro(stdscr: curses.window, CONSTANTS: 'CONSTANTS', game_mode: str) -> None
     stdscr: curses.window
         Curses window
     CONSTANTS: 'CONSTANTS'
-        Constants (size, etc.)
+        Constants (screen size, etc.)
     game_mode: str
         Difficulty level (Easy/Medium/Hard)
     """
-    msg = "Look! A box! I bet it contains something interesting..."
+    intro_msg = "Look! A box! I bet it contains something interesting..."
+    start_question = "Should we take a look inside?"
     stdscr.clear()
     filename = os.path.join(os.path.dirname(__file__), 'assets', 'box.png')
     box = get_ascii(filename, (CONSTANTS.MAX_X - 1, CONSTANTS.MAX_Y - 2))
+    stdscr.addstr(0, 0, box)
+    draw_box(stdscr, CONSTANTS.MAX_Y - 3, CONSTANTS.CENTER_X - len(intro_msg) // 2, intro_msg)
 
     while True:
-        stdscr.addstr(0, 0, box)
-        draw_box(stdscr, CONSTANTS.MAX_Y - 3, CONSTANTS.CENTER_X - len(msg) // 2, msg)
+        key = stdscr.getch()
+        if key:
+            key = None
+            break
 
+    stdscr.clear()
+    stdscr.addstr(0, 0, box)
+    draw_box(stdscr, CONSTANTS.MAX_Y - 3, CONSTANTS.CENTER_X - len(start_question) // 2, start_question)
+
+    while True:
         key = stdscr.getch()
         if key:
             play(stdscr, CONSTANTS, game_mode=game_mode)
-            break
+            return
 
 
 def play(stdscr: curses.window, CONSTANTS: 'CONSTANTS', game_mode: str) -> None:  # noqa: F821
@@ -83,12 +93,11 @@ def play(stdscr: curses.window, CONSTANTS: 'CONSTANTS', game_mode: str) -> None:
     stdscr: curses.window
         Curses window
     CONSTANTS: 'CONSTANTS'
-        Constants (size, etc.)
+        Constants (screen size, etc.)
     game_mode: str
         Difficulty level (Easy/Medium/Hard)
     """
-    # TODO: Do this
-
+    stdscr.clear()
     return
 
 
