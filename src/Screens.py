@@ -1,6 +1,8 @@
 import curses
+import os
 from curses import textpad
 
+from utils.image_to_ascii import get_ascii
 from utils.utils import Menu, draw_box
 
 
@@ -46,16 +48,48 @@ def difficulty_level(stdscr: curses.window, CONSTANTS: 'CONSTANTS') -> str:  # n
     return menu.options[menu.current].strip()
 
 
-def play(stdscr: curses.window, CONSTANTS: 'CONSTANTS', game_mode: str) -> None:  # noqa: F821
-    """Screen shown when play option is selected"""
-    msg = f"Haven't implemented the play screen yet! You have selected the {game_mode} mode"
+def intro(stdscr: curses.window, CONSTANTS: 'CONSTANTS', game_mode: str) -> None:  # noqa: F821
+    """Screen which serves as an intro for the game. Displays a box and a short intro message
+
+    Parameters
+    ----------
+    stdscr: curses.window
+        Curses window
+    CONSTANTS: 'CONSTANTS'
+        Constants (size, etc.)
+    game_mode: str
+        Difficulty level (Easy/Medium/Hard)
+    """
+    msg = "Look! A box! I bet it contains something interesting..."
     stdscr.clear()
+    filename = os.path.join(os.path.dirname(__file__), 'assets', 'box.png')
+    box = get_ascii(filename, (CONSTANTS.MAX_X - 1, CONSTANTS.MAX_Y - 2))
 
     while True:
-        draw_box(stdscr, CONSTANTS.CENTER_Y, CONSTANTS.CENTER_X - len(msg)//2, msg)
+        stdscr.addstr(0, 0, box)
+        draw_box(stdscr, CONSTANTS.MAX_Y - 3, CONSTANTS.CENTER_X - len(msg) // 2, msg)
+
         key = stdscr.getch()
-        if key in [10, 13]:
-            return
+        if key:
+            play(stdscr, CONSTANTS, game_mode=game_mode)
+            break
+
+
+def play(stdscr: curses.window, CONSTANTS: 'CONSTANTS', game_mode: str) -> None:  # noqa: F821
+    """Main play screen
+
+    Parameters
+    ----------
+    stdscr: curses.window
+        Curses window
+    CONSTANTS: 'CONSTANTS'
+        Constants (size, etc.)
+    game_mode: str
+        Difficulty level (Easy/Medium/Hard)
+    """
+    # TODO: Do this
+
+    return
 
 
 def main_menu(stdscr: curses.window, CONSTANTS: 'CONSTANTS', default: int = 0,  # noqa: F821
@@ -89,7 +123,7 @@ def main_menu(stdscr: curses.window, CONSTANTS: 'CONSTANTS', default: int = 0,  
 
         if key in [10, 13]:
             if menu.current == 0:
-                play(stdscr, CONSTANTS, game_mode=mode)
+                intro(stdscr, CONSTANTS, game_mode=mode)
 
             elif menu.current == 1:
                 mode = difficulty_level(stdscr, CONSTANTS)
