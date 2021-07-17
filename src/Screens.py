@@ -104,6 +104,7 @@ def play(stdscr: curses.window, CONSTANTS: 'CONSTANTS', game_mode: str) -> None:
         Difficulty level (Easy/Medium/Hard)
     """
     stdscr.clear()
+    solution_screen(stdscr, CONSTANTS, "http://example.com", has_won=True)
     return
 
 
@@ -147,3 +148,34 @@ def main_menu(stdscr: curses.window, CONSTANTS: 'CONSTANTS', default: int = 0,  
                 return
 
         stdscr.clear()
+
+
+def solution_screen(stdscr: curses.window, CONSTANTS: 'CONSTANTS', image_url: str, default: int = 0,  # noqa: F821
+                    has_won: bool = False) -> None:
+    """Screen to show the user what the image was if he gives up and to congrat him otherwise
+
+    Parameters
+    ----------
+    stdscr: curses.window
+        Curses window
+    CONSTANTS: 'CONSTANTS'
+        Constants (screen size, etc.)
+    has_won: bool
+        Whether thhe user has made a correct guess
+    image_url: str
+        Pixabay URL of the image
+    """
+    stdscr.clear()
+    win_msg = "Congratulations! You've guessed correctly!"
+    lose_msg = "Oh no! You've lost :("
+
+    if has_won:
+        draw_box(stdscr, CONSTANTS.CENTER_Y - 3, CONSTANTS.CENTER_X - len(win_msg) // 2, win_msg)
+    else:
+        draw_box(stdscr, CONSTANTS.CENTER_Y - 3, CONSTANTS.CENTER_X - len(lose_msg) // 2, lose_msg)
+
+    stdscr.addstr(CONSTANTS.CENTER_Y + 1, CONSTANTS.CENTER_X - len(image_url) // 2, image_url)
+    while True:
+        key = stdscr.getch()
+        if key:
+            return
