@@ -1,11 +1,11 @@
 import json
 import random
 from typing import List
-
 import requests
+import shutil
 
 
-def callapi(key: str = "22499447-34dc1e9873c70161efc9bd199") -> List:
+def callapi(key: str = "22499447-34dc1e9873c70161efc9bd199") -> List[str]:
     """Generates a random image and some descriptors for the same
 
     :param key: a pixabay.com api access key
@@ -39,7 +39,6 @@ def callapi(key: str = "22499447-34dc1e9873c70161efc9bd199") -> List:
     colors = random.sample(
         [
             "grayscale",
-            "transparent",
             "red",
             "orange",
             "yellow",
@@ -72,8 +71,16 @@ def callapi(key: str = "22499447-34dc1e9873c70161efc9bd199") -> List:
         imgdescr = apireturn["hits"][0]["tags"].split(", ")
         return [imgaddress, imgdescr]
     else:
-        callapi()
+        return callapi()
 
+def save_random_image() -> List[str]:
+    """saves the generated image in a png file for ascii-conversion and returns the description"""
+    link, desc = callapi()   
+    path = "src/assets/image.png"    
 
-if __name__ == "__main__":
-    callapi()
+    response = requests.get(link, stream=True)
+    with open(path, 'wb') as out_file:
+        shutil.copyfileobj(response.raw, out_file)
+
+    return desc
+
