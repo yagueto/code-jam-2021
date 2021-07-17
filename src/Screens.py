@@ -1,7 +1,9 @@
 import curses
+import os
 from curses import textpad
 
-from utils.utils import Menu, draw_box
+from utils.image_to_ascii import get_ascii
+from utils.utils import Menu, center_multiline_str, draw_box
 
 
 def difficulty_level(stdscr: curses.window, CONSTANTS: 'CONSTANTS') -> str:  # noqa: F821
@@ -17,7 +19,7 @@ def difficulty_level(stdscr: curses.window, CONSTANTS: 'CONSTANTS') -> str:  # n
 
     while True:
 
-        msg = "Choose the difficulty level, harder the level, lesser the time you get to guess!"
+        msg = "Choose the difficulty level, harder the level, lesser the attempts to guess the image!"
         msg = msg.center(CONSTANTS.MAX_X-9)
 
         draw_box(stdscr, 1, 3, msg)
@@ -46,16 +48,63 @@ def difficulty_level(stdscr: curses.window, CONSTANTS: 'CONSTANTS') -> str:  # n
     return menu.options[menu.current].strip()
 
 
-def play(stdscr: curses.window, CONSTANTS: 'CONSTANTS', game_mode: str) -> None:  # noqa: F821
-    """Screen shown when play option is selected"""
-    msg = f"Haven't implemented the play screen yet! You have selected the {game_mode} mode"
+def intro(stdscr: curses.window, CONSTANTS: 'CONSTANTS', game_mode: str) -> None:  # noqa: F821
+    """Screen which serves as an intro for the game. Displays a box and a short intro message
+
+    Parameters
+    ----------
+    stdscr: curses.window
+        Curses window
+    CONSTANTS: 'CONSTANTS'
+        Constants (screen size, etc.)
+    game_mode: str
+        Difficulty level (Easy/Medium/Hard)
+    """
+    intro_msg = "Look! A box! I bet it contains something interesting..."
+    start_question = "Should we take a look inside?"
+
     stdscr.clear()
 
+    filename = os.path.join(os.path.dirname(__file__), 'assets', 'box.png')
+
+    box_size = min(CONSTANTS.MAX_Y, CONSTANTS.MAX_X - 20)
+
+    box = center_multiline_str(get_ascii(filename, (box_size + 30, box_size - 9)), CONSTANTS.MAX_X-1)
+    stdscr.addstr(2, 0, box)
+
+    draw_box(stdscr, CONSTANTS.MAX_Y - 3, CONSTANTS.CENTER_X - len(intro_msg) // 2, intro_msg)
+
     while True:
-        draw_box(stdscr, CONSTANTS.CENTER_Y, CONSTANTS.CENTER_X - len(msg)//2, msg)
         key = stdscr.getch()
-        if key in [10, 13]:
+        if key:
+            key = None
+            break
+
+    stdscr.clear()
+    stdscr.addstr(2, 0, box)
+    draw_box(stdscr, CONSTANTS.MAX_Y - 3, CONSTANTS.CENTER_X - len(start_question) // 2, start_question)
+
+    while True:
+        key = stdscr.getch()
+        if key:
+            play(stdscr, CONSTANTS, game_mode=game_mode)
             return
+
+
+def play(stdscr: curses.window, CONSTANTS: 'CONSTANTS', game_mode: str) -> None:  # noqa: F821
+    """Main play screen
+
+    Parameters
+    ----------
+    stdscr: curses.window
+        Curses window
+    CONSTANTS: 'CONSTANTS'
+        Constants (screen size, etc.)
+    game_mode: str
+        Difficulty level (Easy/Medium/Hard)
+    """
+    stdscr.clear()
+    return
 
 
 def main_menu(stdscr: curses.window, CONSTANTS: 'CONSTANTS', default: int = 0,  # noqa: F821
@@ -89,7 +138,7 @@ def main_menu(stdscr: curses.window, CONSTANTS: 'CONSTANTS', default: int = 0,  
 
         if key in [10, 13]:
             if menu.current == 0:
-                play(stdscr, CONSTANTS, game_mode=mode)
+                intro(stdscr, CONSTANTS, game_mode=mode)
 
             elif menu.current == 1:
                 mode = difficulty_level(stdscr, CONSTANTS)

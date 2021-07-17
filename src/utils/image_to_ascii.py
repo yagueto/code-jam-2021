@@ -19,7 +19,7 @@ def get_ascii(image_path: str, size: Optional[tuple] = None) -> str:
     if size:
         image = image.resize((size[0], size[1]))
 
-    shades = list("@#$%?*+;:,.")
+    shades = list("@#$%?*+;:,. ")
     ascii_art = []
 
     div = 255 // (len(shades)-1)

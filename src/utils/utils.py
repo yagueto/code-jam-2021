@@ -38,3 +38,12 @@ def draw_box(stdscr: 'curses.window', y: int, x: int, text: str, padding: int = 
     text = [f"┌{'─'*(len(text)+2*padding)}┐", f"│{' '*padding}{text}{' '*padding}│", f"└{'─'*(len(text)+2*padding)}┘"]
     for index, text in enumerate(text):
         stdscr.insstr(y + index, x, text)
+
+
+def center_multiline_str(string: str, x_max: int) -> str:
+    """Centers a multiline string according to the given x_max value"""
+    split = string.splitlines()
+    return "\n".join([x.center(x_max) for x in split])
+
+# if __name__ == "__main__":
+#     print(center_multiline_str("hello\nhow are you\nthis is", 10))
