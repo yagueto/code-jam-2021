@@ -3,7 +3,11 @@ import os
 from curses import textpad
 
 from utils.image_to_ascii import get_ascii
-from utils.utils import Menu, draw_box
+
+from utils.utils import Menu, center_multiline_str, draw_box
+from image_tags_retriever import save_random_image
+from user_input import get_synonyms, validate
+import random
 
 
 def difficulty_level(stdscr: curses.window, CONSTANTS: 'CONSTANTS') -> str:  # noqa: F821
@@ -19,7 +23,7 @@ def difficulty_level(stdscr: curses.window, CONSTANTS: 'CONSTANTS') -> str:  # n
 
     while True:
 
-        msg = "Choose the difficulty level, harder the level, lesser the time you get to guess!"
+        msg = "Choose the difficulty level, harder the level, lesser the attempts to guess the image!"
         msg = msg.center(CONSTANTS.MAX_X-9)
 
         draw_box(stdscr, 1, 3, msg)
@@ -48,7 +52,7 @@ def difficulty_level(stdscr: curses.window, CONSTANTS: 'CONSTANTS') -> str:  # n
     return menu.options[menu.current].strip()
 
 
-def intro(stdscr: curses.window, CONSTANTS: 'CONSTANTS', game_mode: str) -> None:  # noqa: F821
+def intro(stdscr: curses.window, CONSTANTS: 'CONSTANTS', game_mode: str, desc: str) -> None:  # noqa: F821
     """Screen which serves as an intro for the game. Displays a box and a short intro message
 
     Parameters
@@ -59,6 +63,8 @@ def intro(stdscr: curses.window, CONSTANTS: 'CONSTANTS', game_mode: str) -> None
         Constants (screen size, etc.)
     game_mode: str
         Difficulty level (Easy/Medium/Hard)
+    desc: str
+        Description of the image
     """
     intro_msg = "Look! A box! I bet it contains something interesting..."
     start_question = "Should we take a look inside?"
@@ -69,27 +75,97 @@ def intro(stdscr: curses.window, CONSTANTS: 'CONSTANTS', game_mode: str) -> None
 
     box_size = min(CONSTANTS.MAX_Y, CONSTANTS.MAX_X - 20)
 
-    box = get_ascii(filename, (box_size + 20, box_size - 3))
-    stdscr.addstr(0, 0, box)
+    box = center_multiline_str(get_ascii(filename, (box_size + 30, box_size - 9)), CONSTANTS.MAX_X-1)
+    stdscr.addstr(2, 0, box)
 
     draw_box(stdscr, CONSTANTS.MAX_Y - 3, CONSTANTS.CENTER_X - len(intro_msg) // 2, intro_msg)
 
-    while True:
-        key = stdscr.getch()
-        if key:
-            key = None
-            break
+
+    key = stdscr.getch()
 
     stdscr.clear()
-    stdscr.addstr(0, 0, box)
+    stdscr.addstr(2, 0, box)
     draw_box(stdscr, CONSTANTS.MAX_Y - 3, CONSTANTS.CENTER_X - len(start_question) // 2, start_question)
 
-    while True:
-        key = stdscr.getch()
-        if key:
-            play(stdscr, CONSTANTS, game_mode=game_mode)
-            return
+    
+    key = stdscr.getch()
+    if key:
+        play(stdscr, CONSTANTS, game_mode=game_mode, desc=desc)
+        return
 
+
+def play(stdscr: curses.window, CONSTANTS: 'CONSTANTS', game_mode: str, desc: str) -> None:  # noqa: F821
+    """Main play screen
+
+    Parameters
+    ----------
+    stdscr: curses.window
+        Curses window
+    CONSTANTS: 'CONSTANTS'
+        Constants (screen size, etc.)
+    game_mode: str
+        Difficulty level (Easy/Medium/Hard)
+    """
+    stdscr.clear()
+
+    mode_to_attempt = {
+        "easy": 5,
+        "medium": 3,
+        "hard": 2
+    }
+
+    total_attempts = mode_to_attempt[game_mode.lower()]
+
+    path = "src/assets/image.png"
+    img_size = min(CONSTANTS.MAX_Y - 10, CONSTANTS.MAX_X - 20)
+    image = center_multiline_str(get_ascii(path, (img_size, img_size)), CONSTANTS.MAX_X)
+
+    at_msg = f"Attempt : 1"
+
+    msg = "Type your guess"
+    attempt = 1
+
+    input_panel_dim = [[CONSTANTS.MAX_Y-4, len(msg)+5], [CONSTANTS.MAX_Y - 2, CONSTANTS.MAX_X-len(at_msg)-5]]
+
+    user_string = ""
+
+    while attempt <= total_attempts:
+        
+        at_msg = f"Attempt : {attempt}"
+
+        draw_box(stdscr, CONSTANTS.MAX_Y-4, 1, msg)            
+        
+        draw_box(stdscr, CONSTANTS.MAX_Y-4, input_panel_dim[1][1]+1, at_msg)
+
+        stdscr.insstr(10, 0, image)
+
+        textpad.rectangle(stdscr, input_panel_dim[0][0], input_panel_dim[0][1], input_panel_dim[1][0], input_panel_dim[1][1])
+
+        
+        key = stdscr.getch()
+        # print(key)
+
+        if key in [10, 13]:
+            synonyms = get_synonyms(random.choice(desc))
+            val = validate(user_string, synonyms)
+            if val:
+                # SHOW THE WIN SCREEN
+                print("yay!")
+            else:
+                attempt += 1
+
+            user_string = ""
+            
+        elif key == 8:
+            user_string = user_string[:-1]
+
+        elif isinstance(chr(key), str):
+            user_string += chr(key)
+
+        stdscr.clear()
+
+        stdscr.insstr(CONSTANTS.MAX_Y-3, 3, user_string)
+     
 
 def play(stdscr: curses.window, CONSTANTS: 'CONSTANTS', game_mode: str) -> None:  # noqa: F821
     """Main play screen
@@ -116,6 +192,10 @@ def main_menu(stdscr: curses.window, CONSTANTS: 'CONSTANTS', default: int = 0,  
     menu = Menu(options=["Play", "Difficulty", "Exit"], default=default, align=True)
     box_dim = [[4, 3], [CONSTANTS.MAX_Y-2, CONSTANTS.MAX_X-3]]
 
+    path = "src/assets/image.png"
+    desc = save_random_image()
+
+
     while True:
 
         msg = f"Current Mode : {mode}"
@@ -139,7 +219,8 @@ def main_menu(stdscr: curses.window, CONSTANTS: 'CONSTANTS', default: int = 0,  
 
         if key in [10, 13]:
             if menu.current == 0:
-                intro(stdscr, CONSTANTS, game_mode=mode)
+
+                intro(stdscr, CONSTANTS, game_mode=mode, desc=desc)
 
             elif menu.current == 1:
                 mode = difficulty_level(stdscr, CONSTANTS)
@@ -148,6 +229,7 @@ def main_menu(stdscr: curses.window, CONSTANTS: 'CONSTANTS', default: int = 0,  
                 return
 
         stdscr.clear()
+
 
 
 def solution_screen(stdscr: curses.window, CONSTANTS: 'CONSTANTS', image_url: str, default: int = 0,  # noqa: F821
