@@ -1,0 +1,4 @@
+PyDictionary~=2.0.1
+fuzzywuzzy~=0.18.0
+windows-curses == 2.2.0
+Pillow==8.2.0
