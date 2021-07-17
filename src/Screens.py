@@ -3,10 +3,11 @@ import os
 from curses import textpad
 
 from utils.image_to_ascii import get_ascii
+
 from utils.utils import Menu, center_multiline_str, draw_box
 from image_tags_retriever import save_random_image
 from user_input import get_synonyms, validate
-import random 
+import random
 
 
 def difficulty_level(stdscr: curses.window, CONSTANTS: 'CONSTANTS') -> str:  # noqa: F821
@@ -166,6 +167,23 @@ def play(stdscr: curses.window, CONSTANTS: 'CONSTANTS', game_mode: str, desc: st
         stdscr.insstr(CONSTANTS.MAX_Y-3, 3, user_string)
      
 
+def play(stdscr: curses.window, CONSTANTS: 'CONSTANTS', game_mode: str) -> None:  # noqa: F821
+    """Main play screen
+
+    Parameters
+    ----------
+    stdscr: curses.window
+        Curses window
+    CONSTANTS: 'CONSTANTS'
+        Constants (screen size, etc.)
+    game_mode: str
+        Difficulty level (Easy/Medium/Hard)
+    """
+    stdscr.clear()
+    solution_screen(stdscr, CONSTANTS, "http://example.com", has_won=True)
+    return
+
+
 def main_menu(stdscr: curses.window, CONSTANTS: 'CONSTANTS', default: int = 0,  # noqa: F821
               mode: str = "Easy") -> None:
     """Main menu screen of the app."""
@@ -201,6 +219,7 @@ def main_menu(stdscr: curses.window, CONSTANTS: 'CONSTANTS', default: int = 0,  
 
         if key in [10, 13]:
             if menu.current == 0:
+
                 intro(stdscr, CONSTANTS, game_mode=mode, desc=desc)
 
             elif menu.current == 1:
@@ -210,3 +229,35 @@ def main_menu(stdscr: curses.window, CONSTANTS: 'CONSTANTS', default: int = 0,  
                 return
 
         stdscr.clear()
+
+
+
+def solution_screen(stdscr: curses.window, CONSTANTS: 'CONSTANTS', image_url: str, default: int = 0,  # noqa: F821
+                    has_won: bool = False) -> None:
+    """Screen to show the user what the image was if he gives up and to congrat him otherwise
+
+    Parameters
+    ----------
+    stdscr: curses.window
+        Curses window
+    CONSTANTS: 'CONSTANTS'
+        Constants (screen size, etc.)
+    has_won: bool
+        Whether thhe user has made a correct guess
+    image_url: str
+        Pixabay URL of the image
+    """
+    stdscr.clear()
+    win_msg = "Congratulations! You've guessed correctly!"
+    lose_msg = "Oh no! You've lost :("
+
+    if has_won:
+        draw_box(stdscr, CONSTANTS.CENTER_Y - 3, CONSTANTS.CENTER_X - len(win_msg) // 2, win_msg)
+    else:
+        draw_box(stdscr, CONSTANTS.CENTER_Y - 3, CONSTANTS.CENTER_X - len(lose_msg) // 2, lose_msg)
+
+    stdscr.addstr(CONSTANTS.CENTER_Y + 1, CONSTANTS.CENTER_X - len(image_url) // 2, image_url)
+    while True:
+        key = stdscr.getch()
+        if key:
+            return

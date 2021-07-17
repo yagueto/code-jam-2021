@@ -1,4 +1,9 @@
 PyDictionary~=2.0.1
 fuzzywuzzy~=0.18.0
-windows-curses == 2.2.0
-Pillow==8.2.0
+certifi==2021.5.30
+charset-normalizer==2.0.3
+idna==3.2
+Pillow==8.3.1
+requests==2.26.0
+urllib3==1.26.6
+windows-curses == 2.2.0; platform_system == "Windows"
